@@ -3,6 +3,8 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
+    "@types/dotenv-safe": "^8.1.1",
+    "@types/ioredis": "^4.17.8",
     "@types/jest": "^26.0.15",
     "@types/node": "^14.14.7",
     "@typescript-eslint/eslint-plugin": "^4.8.0",
@@ -36,5 +38,15 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "npm-run-all --parallel lint test build"
     }
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "discord.js": "^12.4.1",
+    "dotenv-safe": "^8.2.0",
+    "got": "^11.8.0",
+    "ioredis": "^4.19.2",
+    "mariadb": "^2.5.1",
+    "moment": "^2.29.1",
+    "sql-template-strings": "^2.2.2"
   }
 }

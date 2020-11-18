@@ -5,6 +5,7 @@
     "strict": true,
     "module": "CommonJS",
     "skipLibCheck": true,
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "esModuleInterop": true
   }
 }
