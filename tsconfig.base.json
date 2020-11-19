@@ -6,6 +6,8 @@
     "module": "CommonJS",
     "skipLibCheck": true,
     "inlineSourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }

@@ -1,6 +1,11 @@
 import discord from "discord.js";
 import DatabaseConnector from "./data/Database";
 import dotenv from "dotenv-safe";
+import { CommandRegistry, checkPermission } from "./lib/Command";
+import PingCommand from "./commands/core/ping";
+import * as parser from "discord-command-parser";
+import DBCommand from "./commands/dev/db";
+import logger from "./lib/Logger";
 
 dotenv.config();
 
@@ -11,8 +16,20 @@ export default class Bot {
     this.isInitialized = true;
   }
 
+  requiredPermissions: discord.PermissionResolvable = [
+    "VIEW_CHANNEL",
+    "READ_MESSAGE_HISTORY",
+    "SEND_MESSAGES",
+    "EMBED_LINKS",
+    "ADD_REACTIONS",
+  ];
+
   client: discord.Client;
   database: DatabaseConnector;
+
+  commands: CommandRegistry = new CommandRegistry();
+
+  application!: discord.ClientApplication;
 
   private constructor() {
     this.client = new discord.Client({
@@ -29,9 +46,61 @@ export default class Bot {
       password: process.env.MARIADB_PASSWORD!,
       database: process.env.MARIADB_DATABASE!,
     });
+    this.commands.add(new PingCommand(this)).add(new DBCommand(this));
   }
 
   async start(): Promise<void> {
     await this.client.login(process.env.DISCORD_TOKEN);
+    this.application = await this.client.fetchApplication();
+
+    // Bind client events
+
+    this.client.on("message", this._onMessage.bind(this));
+  }
+
+  private async _onMessage(msg: discord.Message): Promise<void> {
+    if (!msg.guild?.me) return;
+    if (msg.channel instanceof discord.DMChannel) return;
+
+    // TODO: get prefix from db
+    const parsed = parser.parse(msg, ".", {
+      allowSpaceBeforeCommand: true,
+    });
+    if (!parsed.success) return;
+    const command = this.commands.resolve(parsed.command);
+    if (!command) {
+      logger.debug(`Invalid command: ${parsed.command}`);
+      return;
+    }
+
+    const missingPermissions = msg.guild.me
+      .permissionsIn(msg.channel)
+      .missing(new discord.Permissions(this.requiredPermissions).add(command.botPermission));
+
+    if (missingPermissions.length > 0) {
+      try {
+        await msg.channel.send(`Missing permissions: ${missingPermissions.join(", ")}`);
+        // eslint-disable-next-line no-empty
+      } catch {
+      } finally {
+        logger.warn(`Missing permissions in ${msg.guild.name} > #${msg.channel.name}: ${missingPermissions.join(", ")}`);
+      }
+      return;
+    }
+
+    if (!checkPermission(this, msg, command.permission)) {
+      logger.debug(`${msg.author.tag} tried to run command ${command.name} without permission.`);
+      return;
+    }
+
+    try {
+      await command.run(msg, parsed.arguments, parsed);
+    } catch (err) {
+      try {
+        await msg.react("❌");
+        // eslint-disable-next-line no-empty
+      } catch {}
+      logger.error(err);
+    }
   }
 }
