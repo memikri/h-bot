@@ -6,6 +6,8 @@ import PingCommand from "./commands/core/ping";
 import * as parser from "discord-command-parser";
 import DBCommand from "./commands/dev/db";
 import logger from "./lib/Logger";
+import BalanceCommand from "./commands/eco/balance";
+import RegisterCommand from "./commands/eco/register";
 
 dotenv.config();
 
@@ -46,7 +48,7 @@ export default class Bot {
       password: process.env.MARIADB_PASSWORD!,
       database: process.env.MARIADB_DATABASE!,
     });
-    this.commands.add(new PingCommand(this)).add(new DBCommand(this));
+    this.commands.add(new PingCommand(this)).add(new DBCommand(this)).add(new BalanceCommand(this)).add(new RegisterCommand(this));
   }
 
   async start(): Promise<void> {
