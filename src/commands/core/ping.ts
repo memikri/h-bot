@@ -18,7 +18,7 @@ export default class PingCommand implements ICommand {
     const msgSendLatency = Date.now() - msgSendBefore;
 
     const dbReadBefore = Date.now();
-    await this.bot.database.selectOne(SQL`SELECT NOW()`);
+    await this.bot.connector.selectOne(SQL`SELECT NOW()`);
     const dbReadLatency = Date.now() - dbReadBefore;
 
     await m.edit(`h!

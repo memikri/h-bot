@@ -14,7 +14,7 @@ export default class DBCommand implements ICommand {
   constructor(public bot: Bot) {}
 
   async run(msg: discord.Message, args: string[], parsed: parser.SuccessfulParsedMessage<discord.Message>): Promise<void> {
-    const conn = await this.bot.database.getConnection();
+    const conn = await this.bot.connector.getConnection();
     const result = await conn.query(parsed.body);
     conn.release();
 

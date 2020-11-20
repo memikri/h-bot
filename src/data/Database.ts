@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { createPool, Pool, PoolConnection } from "mariadb";
-import { SQLStatement } from "sql-template-strings";
+import SQL, { SQLStatement } from "sql-template-strings";
 import logger from "../lib/Logger";
 
 export interface IDatabaseConnectorConfig {
@@ -171,5 +171,43 @@ export default class DatabaseConnector {
   async delete(sql: SQLStatement): Promise<number> {
     const result = await this.queryWrap(sql.sql, sql.values);
     return result.affectedRows;
+  }
+}
+
+export class DatabaseInterface {
+  constructor(public connector: DatabaseConnector) {}
+
+  async getUserID(snowflake: string): Promise<number> {
+    return await this.connector.transaction(async tx => {
+      const existing = await tx.selectOne<{ id: number }>(SQL`SELECT id FROM User WHERE snowflake = ${snowflake}`);
+      if (existing) return existing.id;
+      return await tx.insert(SQL`INSERT INTO User SET snowflake = ${snowflake}`);
+    });
+  }
+
+  async getUserBalance(snowflake: string): Promise<{ bank: number; wallet: number }> {
+    const userID = await this.getUserID(snowflake);
+    const res = await this.connector.selectOne<{ balance_bank: number; balance_wallet: number }>(SQL`
+      SELECT
+        balance_bank,
+        balance_wallet
+      FROM User
+      WHERE id = ${userID}
+    `);
+    if (!res) throw new TypeError(`Failed to fetch row for user ${snowflake} ID ${userID}`);
+    return {
+      bank: res.balance_bank,
+      wallet: res.balance_wallet,
+    };
+  }
+
+  async setUserBalance(snowflake: string, balance: { bank: number; wallet: number }): Promise<void> {
+    const userID = await this.getUserID(snowflake);
+    await this.connector.update(SQL`
+      UPDATE User
+      SET balance_bank = ${balance.bank},
+          balance_wallet = ${balance.wallet}
+      WHERE id = ${userID}
+    `);
   }
 }

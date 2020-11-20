@@ -1884,10 +1884,10 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-discord-command-parser@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/discord-command-parser/-/discord-command-parser-1.5.1.tgz#ab7181b9f8abe6962d351d25b677dd883c4d6441"
-  integrity sha512-Pdd1E6XBPs7eEKoh39tlwRf/WaupKg6439E0K0WUt1M/pZseEx4YZ/YOuhjF0K/kh4k/idj7RSGOhiY6Ykokbg==
+discord-command-parser@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/discord-command-parser/-/discord-command-parser-1.5.3.tgz#ba27097aa0976fa9287ea81f8d8cdd82f2887317"
+  integrity sha512-YWgalkrbly0dJCyLw7p9SX3RC7HIxOrSTz/8vKjlmYPyyZmMCGmKwpXu6HkPXRZ20L6QqftVWigSw6fDK2zemg==
 
 discord.js@^12.4.1:
   version "12.4.1"

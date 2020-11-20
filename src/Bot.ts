@@ -7,7 +7,9 @@ import * as parser from "discord-command-parser";
 import DBCommand from "./commands/dev/db";
 import logger from "./lib/Logger";
 import BalanceCommand from "./commands/eco/balance";
-import RegisterCommand from "./commands/eco/register";
+import { DatabaseInterface } from "./data/Database";
+import { EcoSetCommand } from "./commands/eco/admin";
+import HelpCommand from "./commands/core/help";
 
 dotenv.config();
 
@@ -27,7 +29,8 @@ export default class Bot {
   ];
 
   client: discord.Client;
-  database: DatabaseConnector;
+  connector: DatabaseConnector;
+  database: DatabaseInterface;
 
   commands: CommandRegistry = new CommandRegistry();
 
@@ -41,14 +44,20 @@ export default class Bot {
       disableMentions: "everyone",
       shards: "auto",
     });
-    this.database = new DatabaseConnector({
+    this.connector = new DatabaseConnector({
       host: process.env.MARIADB_HOST!,
       port: Number.parseInt(process.env.MARIADB_PORT!),
       username: process.env.MARIADB_USER!,
       password: process.env.MARIADB_PASSWORD!,
       database: process.env.MARIADB_DATABASE!,
     });
-    this.commands.add(new PingCommand(this)).add(new DBCommand(this)).add(new BalanceCommand(this)).add(new RegisterCommand(this));
+    this.database = new DatabaseInterface(this.connector);
+    this.commands
+      .add(new HelpCommand(this))
+      .add(new PingCommand(this))
+      .add(new DBCommand(this))
+      .add(new BalanceCommand(this))
+      .add(new EcoSetCommand(this));
   }
 
   async start(): Promise<void> {
@@ -67,6 +76,7 @@ export default class Bot {
     // TODO: get prefix from db
     const parsed = parser.parse(msg, ".", {
       allowSpaceBeforeCommand: true,
+      allowBots: true,
     });
     if (!parsed.success) return;
     const command = this.commands.resolve(parsed.command);

@@ -37,7 +37,7 @@ CREATE TABLE Item
     id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     label       VARCHAR(32)     NOT NULL,
     name        VARCHAR(255)    NOT NULL,
-    cost        BIGINT UNSIGNED NOT NULL,
+    cost        BIGINT UNSIGNED          DEFAULT NULL,
     description VARCHAR(255)    NOT NULL,
     created_at  DATETIME        NOT NULL DEFAULT NOW(),
     PRIMARY KEY (id),
@@ -51,23 +51,15 @@ CREATE TABLE UserItem
     user_id    BIGINT UNSIGNED NOT NULL,
     item_id    BIGINT UNSIGNED NOT NULL,
     quantity   INT UNSIGNED    NOT NULL,
+    data       JSON            NOT NULL DEFAULT '{}',
     created_at DATETIME        NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, item_id),
     FOREIGN KEY (user_id) REFERENCES User (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES Item (id) ON UPDATE CASCADE ON DELETE CASCADE
+    FOREIGN KEY (item_id) REFERENCES Item (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CHECK ( JSON_VALID(data) )
 ) ENGINE = INNODB;
 
-CREATE TABLE EcoTransaction
-(
-    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    source_loc  ENUM ('bank','wallet'),
-    source_user BIGINT UNSIGNED,
-    dest_loc    ENUM ('bank','wallet'),
-    dest_user   BIGINT UNSIGNED,
-    guild_id    BIGINT UNSIGNED NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (source_user) REFERENCES User (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (dest_user) REFERENCES User (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (guild_id) REFERENCES Guild (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CHECK ( (source_loc IS NOT NULL AND source_user IS NOT NULL) OR (dest_loc IS NOT NULL AND dest_user IS NOT NULL) )
-) ENGINE = INNODB;
+INSERT INTO Item
+SET label       = 'premium_oneday',
+    name        = 'Premium Code (1 Day)',
+    description = 'This item allows you to redeem one day of h Bot premium.';
