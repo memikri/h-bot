@@ -210,4 +210,14 @@ export class DatabaseInterface {
       WHERE id = ${userID}
     `);
   }
+
+  async addUserBalance(snowflake: string, delta: { bank: number; wallet: number }): Promise<void> {
+    const userID = await this.getUserID(snowflake);
+    await this.connector.update(SQL`
+      UPDATE User
+      SET balance_bank = balance_bank + ${delta.bank},
+          balance_wallet = balance_wallet + ${delta.wallet}
+      WHERE id = ${userID}
+    `);
+  }
 }

@@ -76,9 +76,19 @@ export default class Bot {
     // TODO: get prefix from db
     const parsed = parser.parse(msg, ".", {
       allowSpaceBeforeCommand: true,
-      allowBots: true,
     });
-    if (!parsed.success) return;
+
+    if (!parsed.success) {
+      if (msg.author.bot) return;
+      if (Math.random() * 4 < 1) {
+        // TODO: Redis cooldown
+        const amount = Math.round(Math.random() * 35) + 15;
+        await this.database.addUserBalance(msg.author.id, { bank: 0, wallet: amount });
+        logger.debug(`User ${msg.author.tag} (${msg.author.id}) earned ${amount} h`);
+      }
+      return;
+    }
+
     const command = this.commands.resolve(parsed.command);
     if (!command) {
       logger.debug(`Invalid command: ${parsed.command}`);

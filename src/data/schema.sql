@@ -8,6 +8,7 @@ CREATE TABLE User
     snowflake      CHAR(20)        NOT NULL,
     balance_bank   BIGINT UNSIGNED NOT NULL DEFAULT 0,
     balance_wallet BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    premium_exp    DATETIME                 DEFAULT NULL,
     created_at     DATETIME        NOT NULL DEFAULT NOW(),
     PRIMARY KEY (id),
     UNIQUE KEY (snowflake)
@@ -15,9 +16,10 @@ CREATE TABLE User
 
 CREATE TABLE Guild
 (
-    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    snowflake  CHAR(20)        NOT NULL,
-    created_at DATETIME        NOT NULL DEFAULT NOW(),
+    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    snowflake   CHAR(20)        NOT NULL,
+    premium_exp DATETIME                 DEFAULT NULL,
+    created_at  DATETIME        NOT NULL DEFAULT NOW(),
     PRIMARY KEY (id),
     UNIQUE KEY (snowflake)
 ) ENGINE = INNODB;
@@ -51,12 +53,23 @@ CREATE TABLE UserItem
     user_id    BIGINT UNSIGNED NOT NULL,
     item_id    BIGINT UNSIGNED NOT NULL,
     quantity   INT UNSIGNED    NOT NULL,
-    data       JSON            NOT NULL DEFAULT '{}',
     created_at DATETIME        NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, item_id),
     FOREIGN KEY (user_id) REFERENCES User (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES Item (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CHECK ( JSON_VALID(data) )
+    FOREIGN KEY (item_id) REFERENCES Item (id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE PremiumKey
+(
+    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id     BIGINT UNSIGNED NOT NULL,
+    code_hash   CHAR(64)        NOT NULL,
+    redeemed_at DATETIME                 DEFAULT NULL,
+    expires_at  DATETIME                 DEFAULT NULL,
+    created_at  DATETIME        NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES User (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE INDEX (code_hash)
 ) ENGINE = INNODB;
 
 INSERT INTO Item

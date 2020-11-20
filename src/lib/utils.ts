@@ -1,3 +1,4 @@
+import { AssertionError } from "assert";
 import discord from "discord.js";
 
 export async function fetchUser<T>(client: discord.Client, userID: string | null, def: T): Promise<discord.User | T> {
@@ -22,4 +23,8 @@ export function weightedAverage<T extends string>(options: Record<T, number>): k
     r += weight;
   }
   throw new TypeError("Reached end of weightedAverage");
+}
+
+export function assert<T>(expression: T): asserts expression {
+  if (!expression) throw new AssertionError({ message: `assertion failed: ${expression}` });
 }
