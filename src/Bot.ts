@@ -84,7 +84,7 @@ export default class Bot {
         // TODO: Redis cooldown
         const amount = Math.round(Math.random() * 35) + 15;
         await this.database.addUserBalance(msg.author.id, { bank: 0, wallet: amount });
-        logger.debug(`User ${msg.author.tag} (${msg.author.id}) earned ${amount} h`);
+        logger.debug(`User ${msg.author.tag} (${msg.author.id}) earned ${amount}h`);
       }
       return;
     }
