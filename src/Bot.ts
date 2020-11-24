@@ -10,6 +10,8 @@ import BalanceCommand from "./commands/eco/balance";
 import { DatabaseInterface } from "./data/Database";
 import { EcoSetCommand } from "./commands/eco/admin";
 import HelpCommand from "./commands/core/help";
+import Redis from "ioredis";
+import RedisManager from "./data/RedisManager";
 
 dotenv.config();
 
@@ -29,8 +31,12 @@ export default class Bot {
   ];
 
   client: discord.Client;
+
   connector: DatabaseConnector;
   database: DatabaseInterface;
+
+  redisConnection: Redis.Redis;
+  redisManager: RedisManager;
 
   commands: CommandRegistry = new CommandRegistry();
 
@@ -52,6 +58,12 @@ export default class Bot {
       database: process.env.MARIADB_DATABASE!,
     });
     this.database = new DatabaseInterface(this.connector);
+    this.redisConnection = new Redis({
+      port: Number.parseInt(process.env.REDIS_PORT!),
+      host: process.env.REDIS_HOST!,
+      keyPrefix: `${process.env.REDIS_PREFIX}:`,
+    });
+    this.redisManager = new RedisManager(this.redisConnection);
     this.commands
       .add(new HelpCommand(this))
       .add(new PingCommand(this))
@@ -80,8 +92,7 @@ export default class Bot {
 
     if (!parsed.success) {
       if (msg.author.bot) return;
-      if (Math.random() * 4 < 1) {
-        // TODO: Redis cooldown
+      if (Math.random() * 4 < 1 && (await this.redisManager.cooldown("global:chat_credits", msg.author.id, 15))) {
         const amount = Math.round(Math.random() * 35) + 15;
         await this.database.addUserBalance(msg.author.id, { bank: 0, wallet: amount });
         logger.debug(`User ${msg.author.tag} (${msg.author.id}) earned ${amount}h`);
