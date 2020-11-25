@@ -6,12 +6,12 @@ import PingCommand from "./commands/core/ping";
 import * as parser from "discord-command-parser";
 import DBCommand from "./commands/dev/db";
 import logger from "./lib/Logger";
-import BalanceCommand from "./commands/eco/balance";
 import { DatabaseInterface } from "./data/Database";
 import { EcoSetCommand } from "./commands/eco/admin";
 import HelpCommand from "./commands/core/help";
 import Redis from "ioredis";
 import RedisManager from "./data/RedisManager";
+import { BalanceCommand, PayCommand, DepositCommand, WithdrawCommand } from "./commands/eco/core";
 
 dotenv.config();
 
@@ -22,13 +22,7 @@ export default class Bot {
     this.isInitialized = true;
   }
 
-  requiredPermissions: discord.PermissionResolvable = [
-    "VIEW_CHANNEL",
-    "READ_MESSAGE_HISTORY",
-    "SEND_MESSAGES",
-    "EMBED_LINKS",
-    "ADD_REACTIONS",
-  ];
+  requiredPermissions: discord.PermissionResolvable = ["VIEW_CHANNEL", "READ_MESSAGE_HISTORY", "SEND_MESSAGES", "EMBED_LINKS", "ADD_REACTIONS"];
 
   client: discord.Client;
 
@@ -69,7 +63,10 @@ export default class Bot {
       .add(new PingCommand(this))
       .add(new DBCommand(this))
       .add(new BalanceCommand(this))
-      .add(new EcoSetCommand(this));
+      .add(new EcoSetCommand(this))
+      .add(new PayCommand(this))
+      .add(new DepositCommand(this))
+      .add(new WithdrawCommand(this));
   }
 
   async start(): Promise<void> {
@@ -106,9 +103,7 @@ export default class Bot {
       return;
     }
 
-    const missingPermissions = msg.guild.me
-      .permissionsIn(msg.channel)
-      .missing(new discord.Permissions(this.requiredPermissions).add(command.botPermission));
+    const missingPermissions = msg.guild.me.permissionsIn(msg.channel).missing(new discord.Permissions(this.requiredPermissions).add(command.botPermission));
 
     if (missingPermissions.length > 0) {
       try {

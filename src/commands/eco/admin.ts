@@ -42,9 +42,7 @@ export class EcoSetCommand implements ICommand {
     await this.bot.database.setUserBalance(target.id, balance);
 
     await msg.channel.send(
-      `:white_check_mark: Updated balance of **${
-        target.tag
-      }** -- bank = ${balance.bank.toLocaleString()}, wallet = ${balance.wallet.toLocaleString()}`,
+      `:white_check_mark: Updated balance of **${target.tag}** -- bank = ${balance.bank.toLocaleString()}, wallet = ${balance.wallet.toLocaleString()}`,
     );
   }
 }

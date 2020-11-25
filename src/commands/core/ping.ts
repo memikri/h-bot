@@ -21,9 +21,28 @@ export default class PingCommand implements ICommand {
     await this.bot.connector.selectOne(SQL`SELECT NOW()`);
     const dbReadLatency = Date.now() - dbReadBefore;
 
-    await m.edit(`h!
-Message send API latency: ${msgSendLatency - this.bot.client.ws.ping}ms
-Websocket ping: ${this.bot.client.ws.ping}ms
-Database latency: ${dbReadLatency}ms`);
+    const redisReadBefore = Date.now();
+    await this.bot.redisConnection.ping();
+    const redisReadLatency = Date.now() - redisReadBefore;
+
+    await m.edit("h!", {
+      embed: {
+        description:
+          "```json\n" +
+          JSON.stringify(
+            {
+              API: msgSendLatency - this.bot.client.ws.ping,
+              Websocket: this.bot.client.ws.ping,
+              Database: dbReadLatency,
+              Redis: redisReadLatency,
+            },
+            null,
+            2,
+          ) +
+          "\n```",
+        color: 0x87ceeb,
+        timestamp: new Date(),
+      },
+    });
   }
 }

@@ -61,9 +61,7 @@ export class CommandRegistry {
     this.commands[cmd.name] = cmd;
     for (let i = 0; i < cmd.aliases.length; i++) {
       if (cmd.aliases[i] in this.aliases)
-        throw new Error(
-          `Command ${cmd.name} with alias ${cmd.aliases[i]} already loaded under command ${this.aliases[cmd.aliases[i]].name}`,
-        );
+        throw new Error(`Command ${cmd.name} with alias ${cmd.aliases[i]} already loaded under command ${this.aliases[cmd.aliases[i]].name}`);
       this.aliases[cmd.aliases[i]] = cmd;
     }
     return this;

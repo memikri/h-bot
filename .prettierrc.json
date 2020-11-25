@@ -5,6 +5,6 @@
   "endOfLine": "lf",
   "singleQuote": false,
   "trailingComma": "all",
-  "printWidth": 140,
+  "printWidth": 160,
   "arrowParens": "avoid"
 }

@@ -220,4 +220,47 @@ export class DatabaseInterface {
       WHERE id = ${userID}
     `);
   }
+
+  /**
+   * Returns `true` if the balance transfer succeeded.
+   */
+  async transferUserBalance(fromSnowflake: string, toSnowflake: string, amount: number): Promise<boolean> {
+    const [fromID, toID] = await Promise.all([this.getUserID(fromSnowflake), this.getUserID(toSnowflake)]);
+
+    return await this.connector.transaction(async tx => {
+      const fromBal = await tx.selectOne<{ balance_wallet: number }>(SQL`
+        SELECT
+          balance_wallet
+        FROM User
+        WHERE id = ${fromID}
+      `);
+      if (!fromBal || fromBal.balance_wallet < amount) return false;
+      await Promise.all([
+        tx.update(SQL`UPDATE User SET balance_wallet = balance_wallet - ${amount} WHERE id = ${fromID}`),
+        tx.update(SQL`UPDATE User SET balance_wallet = balance_wallet + ${amount} WHERE id = ${toID}`),
+      ]);
+      // TODO: transaction fee
+      return true;
+    });
+  }
+
+  async moveBankBalance(snowflake: string, delta: number | "withdraw_all" | "deposit_all"): Promise<boolean> {
+    const userID = await this.getUserID(snowflake);
+    return await this.connector.transaction(async tx => {
+      const balances = await tx.selectOne<{ balance_bank: number; balance_wallet: number }>(SQL`
+        SELECT
+          balance_bank,
+          balance_wallet
+        FROM User
+        WHERE id = ${userID}
+      `);
+      if (!balances) return false;
+      if (delta === "withdraw_all") delta = -balances.balance_bank;
+      else if (delta === "deposit_all") delta = balances.balance_wallet;
+      const sourceBalance = delta < 0 ? balances.balance_bank : balances.balance_wallet;
+      if (sourceBalance < Math.abs(delta)) return false;
+      await tx.update(SQL`UPDATE User SET balance_wallet = balance_wallet - ${delta}, balance_bank = balance_bank + ${delta} WHERE id = ${userID}`);
+      return true;
+    });
+  }
 }

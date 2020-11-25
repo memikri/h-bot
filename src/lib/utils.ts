@@ -1,10 +1,16 @@
 import { AssertionError } from "assert";
 import discord from "discord.js";
 
-export async function fetchUser<T>(client: discord.Client, userID: string | null, def: T): Promise<discord.User | T> {
+export async function fetchUser<T>(
+  client: discord.Client,
+  userID: string | null,
+  def: T,
+  options: { allowBots: boolean } = { allowBots: false },
+): Promise<discord.User | T> {
   if (!userID) return def;
   try {
-    return await client.users.fetch(userID);
+    const res = await client.users.fetch(userID);
+    return !options.allowBots && res.bot ? def : res;
   } catch {
     return def;
   }
